@@ -1,9 +1,23 @@
 .background {
   background: #3f72af;
-  width: 100%;
-min-height: 100%;
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  /* background: fixed; */
+  /* z-index: 0; */
+
+}
+@media (width < 375px) {
+  .background{
+    background: #3f72af;
+  width: 100vw;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: start;
+  }
 }
 
