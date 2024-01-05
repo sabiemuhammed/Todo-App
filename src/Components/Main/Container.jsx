@@ -8,6 +8,8 @@ import { FaEdit } from "react-icons/fa";
 import { MdUploadFile } from "react-icons/md";
 import { MdOutlineCancel } from "react-icons/md";
 import { FaListCheck } from "react-icons/fa6";
+import { Nav, Tab } from "react-bootstrap";
+import AllTasks from "./AllTasks";
 
 function Container() {
   const [newTodo, setNewTodo] = useState("");
@@ -15,6 +17,8 @@ function Container() {
 
   const [selectedTasks, setSelectedTasks] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("pending");
 
   const [todos, setTodos] = useState(() => {
     const storedTodos = localStorage.getItem("todos");
@@ -24,9 +28,12 @@ function Container() {
 
   const [editngTodo, setEditingTodo] = useState(null);
 
+  const handleSelectTab = (tab) => {
+    setActiveTab(tab);
+  };
 
-const handleSelectAll = () => {
-    const updatedTodos = todos.map(todo => ({
+  const handleSelectAll = () => {
+    const updatedTodos = todos.map((todo) => ({
       ...todo,
       completed: !selectAll,
     }));
@@ -35,23 +42,20 @@ const handleSelectAll = () => {
     setSelectAll(!selectAll);
   };
 
-    const handleDeleteSelected = () => {
-    const updatedTodos = todos.filter(todo => !todo.completed);
+  const handleDeleteSelected = () => {
+    const updatedTodos = todos.filter((todo) => !todo.completed);
     setTodos(updatedTodos);
     setSelectAll(false);
   };
 
   const handleTodoChange = (id) => {
-    const updatedTodos = todos.map(todo =>
+    const updatedTodos = todos.map((todo) =>
       todo.id === id ? { ...todo, completed: !todo.completed } : todo
     );
 
     setTodos(updatedTodos);
-    setSelectAll(updatedTodos.every(todo => todo.completed));
+    setSelectAll(updatedTodos.every((todo) => todo.completed));
   };
-
-
-
 
   const addTodo = () => {
     if (newTodo.trim() !== "") {
@@ -102,6 +106,8 @@ const handleSelectAll = () => {
     console.log(todos);
   }, []);
 
+
+
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
   }, [todos]);
@@ -119,27 +125,35 @@ const handleSelectAll = () => {
   };
 
   const deleteSelectedTasks = () => {
-    handleDeleteSelected()
+    handleDeleteSelected();
     setTodos((prevTodos) =>
       prevTodos.filter((task) => !selectedTasks.includes(task.id))
     );
-    
+
     // Clear the selection after deletion
     setSelectedTasks([]);
-
   };
 
   const combinedToggle = (id) => {
     handleToggleComplete(id);
     toggleSelect(id);
-    handleTodoChange(id)
+    handleTodoChange(id);
   };
 
   console.log(selectedTasks, "selectedTask");
 
-
   const pendingTasks = todos.filter((todo) => !todo.completed);
   const doneTasks = todos.filter((done) => done.completed);
+
+  const getFilteredTodos = () => {
+    if (activeTab === "pending") {
+      return todos.filter((todo) => !todo.completed);
+    } else if (activeTab === "done") {
+      return todos.filter((todo) => todo.completed);
+    } else if (activeTab === 'all'){
+      return todos;
+    }
+  };
 
   return (
     <div className="main">
@@ -184,20 +198,17 @@ const handleSelectAll = () => {
       </div>
       <hr />
       <div className="delete-all">
-        <div >
+        <div>
           {selectedTasks.length >= 0 && (
-
-          // delete all selected todos
+            // delete all selected todos
             <Button
               variant="danger"
               onClick={deleteSelectedTasks}
               style={{ gap: "3px" }}
-              className={`${editngTodo? '':''}`}
+              className={`${editngTodo ? "" : ""}`}
             >
-
               <div className="select-delete">
-                <div>
-                  Delete Selected</div>
+                <div>Delete Selected</div>
                 <div>
                   <FaListCheck />
                 </div>
@@ -205,28 +216,81 @@ const handleSelectAll = () => {
             </Button>
           )}
         </div>
-          <div>
+        <div>
+          {/* selectall todos button */}
 
-        {/* selectall todos button */}
-
-             <Button
-              variant="info"
-              onClick={handleSelectAll}
-              style={{ gap: "3px" }}
-              className={`${editngTodo? '':''}`}
-            >
-              select All
-            </Button>
-          </div>
+          <Button
+            variant="info"
+            onClick={handleSelectAll}
+            style={{ gap: "3px" }}
+            className={`${activeTab === 'all'? '':'disabled'}`}
+          >
+            select All
+          </Button>
+        </div>
       </div>
       <hr />
-      {todos
+
+      <Nav fill variant="tabs" defaultActiveKey="all">
+        <Nav.Item>
+          <Nav.Link
+            eventKey="all"
+            active={activeTab === "all"}
+            onClick={() => handleSelectTab("all")}
+          >
+            All Todos
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link
+            eventKey="pending"
+            active={activeTab === "pending"}
+            onClick={() => handleSelectTab("pending")}
+          >
+            Pending Todos
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link
+            eventKey="done"
+            active={activeTab === "done"}
+            onClick={() => handleSelectTab("done")}
+          >
+            Done Todos
+          </Nav.Link>
+        </Nav.Item>
+      </Nav>
+
+      {todos.length === 0? (<div style={{display:'flex',alignItems:'center',justifyContent:'center', padding:"3rem"}}>
+        sorry there are no Todos</div>):(<></>)}
+
+      {/* <Tab.Content>
+        <Tab.Pane eventKey="pending">
+          <h1>Pending Todos</h1>
+          {getFilteredTodos().map((todo) => (
+            <div key={todo.id}>
+              <span>{todo.text}</span>
+            </div>
+          ))}
+        </Tab.Pane>
+        <Tab.Pane eventKey="done">
+          <h1>Done Todos</h1>
+          {getFilteredTodos().map((todo) => (
+            <div key={todo.id}>
+              <span>{todo.text}</span>
+            </div>
+          ))}
+        </Tab.Pane>
+      </Tab.Content> */}
+
+      {getFilteredTodos()
         .sort((a, b) =>
           a.completed === b.completed ? 0 : a.completed ? 1 : -1
         )
         .map((todo) => (
           <div className="todos-list">
             <div className="todo-items" key={todo.id}>
+            
               <div className="check">
                 <input
                   type="checkbox"
